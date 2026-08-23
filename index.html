@@ -100,6 +100,13 @@ th:first-child,td:first-child{padding-left:4px!important}
   tr{break-inside:avoid;page-break-inside:avoid}
 }
 
+
+.name-copybtn{
+  margin-left:5px!important;
+  padding:2px 6px!important;
+  vertical-align:middle;
+}
+
 </style>
 
 <style>
@@ -176,7 +183,7 @@ h3{font-size:14px;margin-bottom:6px!important}
 </head>
 
 <body>
-<header><div class="wrap"><h1>REINS・ミオ（ARNet）比較</h1><div class="sub">候補比較 v2.8｜REINSは号室なしのため、物件名からMIO候補を表示</div></div></header>
+<header><div class="wrap"><h1>REINS・ミオ（ARNet）比較</h1><div class="sub">候補比較 v3.0｜REINSは号室なしのため、物件名からMIO候補を表示</div></div></header>
 <div class="wrap">
 
   <div class="panel">
@@ -472,6 +479,13 @@ const TARGET_ADDRESS_KEYWORDS=[
 function targetAddressNorm(s){
   return String(s||"")
     .normalize("NFKC")
+    // REINS PDF内の異体字を通常字へ寄せる
+    .replace(/⻄/g,"西")
+    .replace(/⼭/g,"山")
+    .replace(/⼝/g,"口")
+    .replace(/⾼/g,"高")
+    .replace(/⼩/g,"小")
+    .replace(/⻑/g,"長")
     .replace(/[ヶヵ]/g,"ケ")
     .replace(/\s+/g,"");
 }
@@ -899,6 +913,7 @@ function renderComparison(){
           <div class="comparepair">
             <div class="mio-line">
               <span class="src-mio">MIO</span>${esc(m["物件名"]||"-")}
+              ${m["物件名"]?`<button class="copybtn name-copybtn" type="button" data-copy="${esc(m["物件名"])}">コピー</button>`:""}
               <span class="management-inline">
                 <b>${esc(m["物件番号"]||"-")}</b>
                 ${m["物件番号"]?`<button class="copybtn" type="button" data-copy="${esc(m["物件番号"])}">コピー</button>`:""}
