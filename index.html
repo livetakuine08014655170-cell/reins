@@ -20,6 +20,86 @@ h1{font-size:24px;margin:0 0 5px}.sub{font-size:13px;color:#e8eef5}
 .tablebox{overflow:auto;max-height:720px;border:1px solid var(--line);border-radius:10px}table{border-collapse:collapse;width:100%;min-width:1180px;font-size:12px}th{position:sticky;top:0;background:var(--navy);color:#fff;padding:8px;text-align:left;white-space:nowrap}td{padding:7px 8px;border-bottom:1px solid #edf1f4;vertical-align:top;white-space:nowrap}tr:hover td{background:#f8fbfd}.miss td{background:#fff8e7}
 .small{font-size:12px;color:var(--muted);line-height:1.7}
 @media(max-width:800px){.cards{grid-template-columns:1fr}.wrap{padding:10px}}
+
+.comparepair{font-size:11px;line-height:1.45;white-space:nowrap}
+.comparepair .mio-line{font-weight:700}
+.comparepair .reins-line{margin-top:2px;color:#53697b}
+.src-mio,.src-reins{display:inline-block;width:42px;font-size:9px;font-weight:800}
+.src-mio{color:#167043}.src-reins{color:#315b80}
+.reins-only{
+  margin-top:6px;padding-top:6px;border-top:1px dashed #cfd8df;
+  font-size:10px;line-height:1.5;color:#596773
+}
+
+
+.name-number-row{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+}
+.name-number-row .comparepair{flex:1;min-width:0}
+.management-inline{
+  flex:0 0 auto;
+  display:flex;
+  align-items:center;
+  gap:5px;
+  white-space:nowrap;
+  font-size:11px;
+}
+.management-inline .copybtn{margin:0}
+
+
+.name-number-row{display:block}
+.management-inline{
+  display:inline-flex;
+  align-items:center;
+  gap:4px;
+  margin-left:8px;
+  vertical-align:middle;
+  white-space:nowrap;
+  font-size:11px;
+}
+.management-inline .copybtn{margin:0}
+
+
+/* v2.7 compact left-aligned layout */
+.wrap{max-width:none!important;width:100%!important;margin:0!important;padding-left:6px!important;padding-right:6px!important}
+header .wrap{margin:0!important;padding-left:6px!important}
+.panel{padding-left:8px!important;padding-right:8px!important}
+.tablebox{width:100%;margin-left:0}
+table, .tablebox table{width:auto!important;min-width:0!important;table-layout:auto}
+th,td{padding-left:5px!important;padding-right:5px!important}
+th:first-child,td:first-child{padding-left:4px!important}
+.src-mio,.src-reins{width:36px!important}
+.management-inline{margin-left:5px!important}
+.reins-only{margin-top:4px!important;padding-top:4px!important}
+
+
+#pdfBtn{margin-left:auto;padding:8px 14px}
+@media print{
+  @page{size:A4 landscape;margin:7mm}
+  body{background:#fff!important;font-size:8px!important}
+  header,.wrap>.panel:first-of-type,.compare-head,.more-candidates-row{display:none!important}
+  .wrap{padding:0!important;margin:0!important;width:100%!important}
+  #result{display:block!important;box-shadow:none!important;border:0!important;padding:0!important;margin:0!important}
+  .cards{margin:0 0 5px 0!important;gap:5px!important}
+  .card{padding:4px 8px!important;min-width:70px!important}
+  .card .n{font-size:14px!important}
+  .card .l{font-size:8px!important}
+  .tablebox{overflow:visible!important;border:0!important}
+  table{width:100%!important;border-collapse:collapse!important;font-size:7.5px!important}
+  th,td{padding:2px 3px!important;line-height:1.25!important;vertical-align:top!important}
+  th{font-size:7px!important}
+  .copybtn,.more-candidates-btn{display:none!important}
+  .management-inline{margin-left:3px!important;font-size:7px!important}
+  .comparepair,.reins-only{font-size:7px!important;line-height:1.25!important}
+  .src-mio,.src-reins{width:28px!important;font-size:6.5px!important}
+  .reins-only{margin-top:2px!important;padding-top:2px!important}
+  .badge{font-size:6.5px!important;padding:2px 4px!important}
+  tr{break-inside:avoid;page-break-inside:avoid}
+}
+
 </style>
 
 <style>
@@ -44,21 +124,59 @@ h1{font-size:24px;margin:0 0 5px}.sub{font-size:13px;color:#e8eef5}
 }
 .copybtn:hover{background:#f2f6f9}
 .copybtn.done{background:#e5f5ec;border-color:#a8d8bd;color:#167043}
-.more-candidates-row td{background:#f7f9fb;padding:7px 10px}
+@media(max-width:900px){.uploadgrid{grid-template-columns:1fr}}
+</style>
+
+
+<style>
+.wrap{max-width:1200px;margin:0;padding-left:14px;padding-right:14px}
+header .wrap{margin:0;padding-left:14px}
+.uploadgrid{display:block}
+.uploadgrid>div{margin-bottom:12px}
+.dropbox{
+  padding:14px 16px;
+  text-align:left;
+  min-height:auto;
+  border-width:2px;
+  border-radius:9px;
+  font-size:14px;
+}
+.statusbox{margin-top:6px;padding:7px 10px;font-size:12px}
+.panel{padding:12px;margin-bottom:10px;border-radius:10px}
+.actions{margin-top:8px}
+.actions button{padding:8px 12px}
+h3{font-size:14px;margin-bottom:6px!important}
+.compare-head{margin-bottom:8px}
+.cards{gap:6px;margin-bottom:8px}
+.card{padding:8px}
+.n{font-size:22px}
+.tablebox{max-height:760px}
+.reinscell{min-width:220px}
+.reins-under{
+  margin-top:7px;
+  padding-top:7px;
+  border-top:1px dashed #cfd8df;
+  font-size:11px;
+  line-height:1.55;
+  color:#53616d;
+}
+.reins-under .miomain{
+  font-size:12px;
+  color:#32495d;
+}
+.more-candidates-row td{background:#f7f9fb;padding:6px 8px}
 .more-candidates-btn{
   border:1px solid #c5d0d9;border-radius:7px;background:#fff;color:#29445a;
-  padding:6px 11px;font-size:12px;font-weight:700;cursor:pointer;
+  padding:5px 9px;font-size:11px;font-weight:700;cursor:pointer;
 }
-.more-candidates-btn:hover{background:#eef3f7}
 .extra-candidate{display:none}
 .extra-candidate.open{display:table-row}
-@media(max-width:900px){.uploadgrid{grid-template-columns:1fr}}
 </style>
 
 </head>
 
 <body>
-<header><div class="wrap"><h1>REINS・ミオ（ARNet）比較</h1><div class="sub">候補比較 v1.6｜REINSは号室なしのため、物件名からMIO候補を表示</div></div></header>
+<header><div class="wrap"><h1>REINS・ミオ（ARNet）比較</h1><div class="sub">候補比較 v2.8｜REINSは号室なしのため、物件名からMIO候補を表示</div></div></header>
 <div class="wrap">
 
   <div class="panel">
@@ -97,13 +215,14 @@ h1{font-size:24px;margin:0 0 5px}.sub{font-size:13px;color:#e8eef5}
     <div class="compare-head">
       <input id="searchBox" placeholder="物件名・所在地・号室で検索" style="padding:10px 12px;border:1px solid #dbe3ea;border-radius:8px;min-width:300px">
       <span class="small">候補は条件が近い順に表示します。</span>
+      <button id="pdfBtn" type="button">PDF保存</button>
     </div>
 
-    <div class="tablebox"><table style="min-width:1500px">
+    <div class="tablebox"><table>
       <thead>
         <tr>
-          <th>REINS</th><th>候補</th><th>ARNet管理番号</th><th>MIO物件名</th><th>号室</th><th>所在階</th><th>間取</th><th>専有</th>
-          <th>賃料</th><th>共益費</th><th>敷金</th><th>保証金</th><th>礼金</th><th>所在地/駅</th><th>近さ</th>
+          <th>候補</th><th>MIO物件名 / REINS情報・管理番号</th><th>号室</th><th>所在階</th><th>間取</th><th>専有</th>
+          <th>賃料</th><th>共益費</th><th>敷金</th><th>保証金</th><th>礼金</th><th>近さ</th>
         </tr>
       </thead>
       <tbody id="compareBody"></tbody>
@@ -193,17 +312,9 @@ function parsePage(items,pageNo){
     const transactionM=transactionText.match(/(媒介|代理|貸主|売主|一般)/);
     const transaction=transactionM?transactionM[1]:"";
 
-    // 商号：各物件の4段目右側に固定配置されている会社名を座標で取得。
-    // 「商号」という見出しはページヘッダーにしか無いため、ラベル検索は使わない。
-    // 12桁物件番号の行を基準に、約47〜58pt下・x=430以降が商号行。
-    const companyParts=rel(46,59)
-      .filter(o=>o.x>=430)
-      .sort((a,b)=>a.x-b.x)
-      .map(o=>compact(o.text))
-      .filter(Boolean)
-      .filter(v=>!/^[-－‐—]+$/.test(v))
-      .filter(v=>!/^0?\d{1,4}-\d{1,4}-\d{3,4}$/.test(v));
-    let company=companyParts.join("").trim();
+    // 商号は建物名が2行になる物件でY位置が下へずれるため、
+    // 後段で「礼金／権利金」行と同じ高さから動的に取得する。
+    let company="";
 
     // 賃料
     const rentText=joinedCompact(line2.filter(o=>o.x>=150&&o.x<270));
@@ -238,21 +349,67 @@ function parsePage(items,pageNo){
     const layoutM=layoutText.match(/(ワンルーム|\d+(?:R|K|DK|LDK|SK|SDK|SLDK)(?:\+S)?)/i);
     if(layoutM) layout=cleanLayout(layoutM[1]);
 
-    // 管理費・共益費
-    const management=moneyCell(line3.filter(o=>o.x>=150&&o.x<270));
-    const common=moneyCell(line4.filter(o=>o.x>=150&&o.x<270));
-
-    // 敷金／保証金、礼金／権利金。REINSは「左/右」の1セル表記。
-    // 「-」「なし」もそのまま保持して、後のMIO比較時に0/空欄との正規化ができるようにする。
-    function pairCondition(ws){
-      let t=joinedCompact(ws).replace(/円/g,"");
+    // 管理費・共益費 / 敷金・保証金 / 礼金・権利金
+    // 建物名が2行になる物件（例：ジオタワー宝塚 グランレジス The North）では
+    // 条件欄全体が約16pt下へずれるため、固定Y座標ではなく「賃料行より下の各列」を
+    // 上から順に拾う。
+    function groupByTop(ws, tol=3.5){
+      const sorted=[...ws].sort((a,b)=>a.top-b.top||a.x-b.x);
+      const groups=[];
+      for(const o of sorted){
+        let g=groups.find(g=>Math.abs(g.top-o.top)<=tol);
+        if(!g){ g={top:o.top,items:[]}; groups.push(g); }
+        g.items.push(o);
+      }
+      return groups.sort((a,b)=>a.top-b.top);
+    }
+    function pairConditionText(t){
+      t=String(t||"").replace(/円/g,"").trim();
       if(!t) return ["",""];
       const parts=t.split("/");
       const clean=v=>String(v||"").replace(/^[-－‐—]+$/,"-");
       return [clean(parts[0]),clean(parts[1])];
     }
-    const [deposit,guarantee]=pairCondition(line3.filter(o=>o.x>=270&&o.x<390));
-    const [keyMoney,rightMoney]=pairCondition(line4.filter(o=>o.x>=270&&o.x<390));
+
+    const rentTopCandidates=line2.filter(o=>o.x>=150&&o.x<270);
+    const rentTop=rentTopCandidates.length
+      ? Math.min(...rentTopCandidates.map(o=>o.top))
+      : a.top+18;
+
+    // 条件列（敷金/保証金 → 礼金/権利金）
+    const condGroups=groupByTop(
+      block.filter(o=>o.top>rentTop+6 && o.x>=270&&o.x<390)
+    ).filter(g=>{
+      const t=joinedCompact(g.items);
+      return t.includes("/") || /(?:なし|万円|ヶ?月|円|[-－‐—])/.test(t);
+    });
+
+    const depGroup=condGroups[0]||null;
+    const keyGroup=condGroups[1]||null;
+    const [deposit,guarantee]=pairConditionText(depGroup?joinedCompact(depGroup.items):"");
+    const [keyMoney,rightMoney]=pairConditionText(keyGroup?joinedCompact(keyGroup.items):"");
+
+    // 費用列（管理費 → 共益費）
+    const feeGroups=groupByTop(
+      block.filter(o=>o.top>rentTop+6 && o.x>=150&&o.x<270)
+    ).filter(g=>{
+      const t=joinedCompact(g.items);
+      return /(?:なし|\d|円|[-－‐—])/.test(t);
+    });
+    const management=feeGroups[0]?moneyCell(feeGroups[0].items):"";
+    const common=feeGroups[1]?moneyCell(feeGroups[1].items):"";
+
+    // 商号は礼金/権利金行とほぼ同じ高さの右側。
+    const companyTop=keyGroup?keyGroup.top:(depGroup?depGroup.top+16:a.top+50);
+    const companyParts=block
+      .filter(o=>Math.abs(o.top-companyTop)<=5 && o.x>=430)
+      .sort((a,b)=>a.x-b.x)
+      .map(o=>compact(o.text))
+      .filter(Boolean)
+      .filter(v=>!/^[-－‐—]+$/.test(v))
+      .filter(v=>!/(?:阪急|阪神|JR|ＪＲ|福知山|宝塚線|今津線)$/.test(v))
+      .filter(v=>!/^0?\d{1,4}-\d{1,4}-\d{3,4}$/.test(v));
+    company=companyParts.join("").trim();
 
     rows.push({
       page:pageNo,
@@ -668,6 +825,22 @@ function candidateRowsFor(r){
 function sameMoney(a,b,rentA=0,rentB=0){
   return nMoney(a,rentA)===nMoney(b,rentB);
 }
+
+function pairCell(mioVal,reinsVal){
+  const mv=String(mioVal??"").trim()||"-";
+  const rv=String(reinsVal??"").trim()||"-";
+  return `<div class="comparepair">
+    <div class="mio-line"><span class="src-mio">MIO</span>${esc(mv)}</div>
+    <div class="reins-line"><span class="src-reins">REINS</span>${esc(rv)}</div>
+  </div>`;
+}
+function reinsOnlySummary(r){
+  return `<div class="reins-only">
+    <div>REINS所在地：${esc(r.address||"-")}</div>
+    <div>商号：${esc(r.company||"-")}</div>
+  </div>`;
+}
+
 function reinsSummary(r){
   return `<div class="miomain">${esc(r.name)}</div>
     <div class="small2">${esc(r.address)}</div>
@@ -699,7 +872,7 @@ function renderComparison(){
       const tr=document.createElement("tr");
       tr.className="candidate-group";
       tr.dataset.search=nk(r.name+" "+r.address);
-      tr.innerHTML=`<td class="reinscell">${reinsSummary(r)}</td><td><span class="badge bred">候補なし</span></td><td colspan="13" class="muted">MIOに物件名候補が見つかりません</td>`;
+      tr.innerHTML=`<td><span class="badge bred">候補なし</span></td><td colspan="11"><div class="muted" style="margin-bottom:6px">MIOに物件名候補が見つかりません</div><div class="reins-under">${reinsSummary(r)}</div></td>`;
       body.appendChild(tr);
       continue;
     }
@@ -721,23 +894,29 @@ function renderComparison(){
       const rentEq=rr&&mr&&rr===mr;
 
       tr.innerHTML=`
-        <td class="reinscell">${idx===0?reinsSummary(r):'<span class="muted">〃</span>'}</td>
         <td><span class="badge ${idx===0?'bgreen':'byellow'}">候補${idx+1}</span></td>
         <td>
-          <div><b>${esc(m["物件番号"]||"-")}</b></div>
-          ${m["物件番号"]?`<button class="copybtn" type="button" data-copy="${esc(m["物件番号"])}">コピー</button>`:""}
+          <div class="comparepair">
+            <div class="mio-line">
+              <span class="src-mio">MIO</span>${esc(m["物件名"]||"-")}
+              <span class="management-inline">
+                <b>${esc(m["物件番号"]||"-")}</b>
+                ${m["物件番号"]?`<button class="copybtn" type="button" data-copy="${esc(m["物件番号"])}">コピー</button>`:""}
+              </span>
+            </div>
+            <div class="reins-line"><span class="src-reins">REINS</span>${esc(r.name||"-")}</div>
+          </div>
+          ${idx===0?reinsOnlySummary(r):""}
         </td>
-        <td class="miomain">${esc(m["物件名"])}</td>
         <td>${esc(m["号室"]||"-")}</td>
-        <td class="${fieldClass(floorEq)}">${esc(m["所在階"]||"-")}</td>
-        <td class="${fieldClass(layoutEq)}">${esc(m["間取"]||"-")}</td>
-        <td class="${fieldClass(areaEq)}">${esc(m["専有"]||"-")}</td>
-        <td class="${fieldClass(rentEq)}">${esc(m["賃料"]||"-")}</td>
-        <td class="${fieldClass(feeEq)}">${esc(m["共益費"]||"0")}</td>
-        <td class="${fieldClass(sameMoney(r.deposit,m["敷金"],rr,mr))}">${esc(m["敷金"]||"0")}</td>
-        <td class="${fieldClass(sameMoney(r.guarantee,m["保証金"],rr,mr))}">${esc(m["保証金"]||"0")}</td>
-        <td class="${fieldClass(sameMoney(r.keyMoney,m["礼金"],rr,mr))}">${esc(m["礼金"]||"0")}</td>
-        <td>${esc((m["駅名"]||"")+" "+(m["沿線"]||""))}</td>
+        <td class="${fieldClass(floorEq)}">${pairCell(m["所在階"],r.floor)}</td>
+        <td class="${fieldClass(layoutEq)}">${pairCell(m["間取"],r.layout)}</td>
+        <td class="${fieldClass(areaEq)}">${pairCell(m["専有"],r.area?r.area+"㎡":"")}</td>
+        <td class="${fieldClass(rentEq)}">${pairCell(m["賃料"],r.rent)}</td>
+        <td class="${fieldClass(feeEq)}">${pairCell(m["共益費"]||"0", [r.management,r.common].filter(Boolean).join("＋")||"0")}</td>
+        <td class="${fieldClass(sameMoney(r.deposit,m["敷金"],rr,mr))}">${pairCell(m["敷金"]||"0",r.deposit||"0")}</td>
+        <td class="${fieldClass(sameMoney(r.guarantee,m["保証金"],rr,mr))}">${pairCell(m["保証金"]||"0",r.guarantee||"0")}</td>
+        <td class="${fieldClass(sameMoney(r.keyMoney,m["礼金"],rr,mr))}">${pairCell(m["礼金"]||"0",r.keyMoney||"0")}</td>
         <td><b>${c.score}</b></td>`;
       body.appendChild(tr);
     });
@@ -747,7 +926,7 @@ function renderComparison(){
       more.className="more-candidates-row";
       more.dataset.group=groupId;
       more.dataset.search=nk(r.name+" "+r.address+" "+cs.slice(1).map(x=>(x.m["物件名"]||"")+" "+(x.m["号室"]||"")).join(" "));
-      more.innerHTML=`<td></td><td colspan="14"><button type="button" class="more-candidates-btn" data-group="${groupId}" data-count="${cs.length-1}">候補2以下を表示（${cs.length-1}件） ▼</button></td>`;
+      more.innerHTML=`<td></td><td colspan="11"><button type="button" class="more-candidates-btn" data-group="${groupId}" data-count="${cs.length-1}">候補2以下を表示（${cs.length-1}件） ▼</button></td>`;
       body.appendChild(more);
     }
   }
@@ -811,6 +990,15 @@ mioFile.onchange=()=>mioFile.files.length&&readMioPdfs(mioFile.files);
 mioDrop.addEventListener("dragover",e=>{e.preventDefault();mioDrop.classList.add("drag")});
 mioDrop.addEventListener("dragleave",()=>mioDrop.classList.remove("drag"));
 mioDrop.addEventListener("drop",e=>{e.preventDefault();mioDrop.classList.remove("drag");const fs=e.dataTransfer.files;if(fs&&fs.length)readMioPdfs(fs)});
+
+
+$("pdfBtn").onclick=()=>{
+  if(!$("compareBody").rows.length){
+    alert("先に候補比較を実行してください。");
+    return;
+  }
+  window.print();
+};
 
 $("compareBtn").onclick=renderComparison;
 $("searchBox").oninput=applySearch;
