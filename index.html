@@ -38,13 +38,27 @@ h1{font-size:24px;margin:0 0 5px}.sub{font-size:13px;color:#e8eef5}
 .oktext{color:#168552;font-weight:700}
 .muted{color:#6c7882}
 .small2{font-size:11px;color:#6c7882}
+.copybtn{
+  margin-top:4px;padding:4px 8px;border:1px solid #b8c3cc;border-radius:6px;
+  background:#fff;color:#29445a;font-size:11px;font-weight:700;cursor:pointer;
+}
+.copybtn:hover{background:#f2f6f9}
+.copybtn.done{background:#e5f5ec;border-color:#a8d8bd;color:#167043}
+.more-candidates-row td{background:#f7f9fb;padding:7px 10px}
+.more-candidates-btn{
+  border:1px solid #c5d0d9;border-radius:7px;background:#fff;color:#29445a;
+  padding:6px 11px;font-size:12px;font-weight:700;cursor:pointer;
+}
+.more-candidates-btn:hover{background:#eef3f7}
+.extra-candidate{display:none}
+.extra-candidate.open{display:table-row}
 @media(max-width:900px){.uploadgrid{grid-template-columns:1fr}}
 </style>
 
 </head>
 
 <body>
-<header><div class="wrap"><h1>REINS・ミオ（ARNet）比較</h1><div class="sub">候補比較 v1.2｜REINSは号室なしのため、物件名からMIO候補を表示</div></div></header>
+<header><div class="wrap"><h1>REINS・ミオ（ARNet）比較</h1><div class="sub">候補比較 v1.6｜REINSは号室なしのため、物件名からMIO候補を表示</div></div></header>
 <div class="wrap">
 
   <div class="panel">
@@ -88,7 +102,7 @@ h1{font-size:24px;margin:0 0 5px}.sub{font-size:13px;color:#e8eef5}
     <div class="tablebox"><table style="min-width:1500px">
       <thead>
         <tr>
-          <th>REINS</th><th>候補</th><th>MIO物件名</th><th>号室</th><th>所在階</th><th>間取</th><th>専有</th>
+          <th>REINS</th><th>候補</th><th>ARNet管理番号</th><th>MIO物件名</th><th>号室</th><th>所在階</th><th>間取</th><th>専有</th>
           <th>賃料</th><th>共益費</th><th>敷金</th><th>保証金</th><th>礼金</th><th>所在地/駅</th><th>近さ</th>
         </tr>
       </thead>
@@ -570,14 +584,33 @@ function nk(s){
     .replace(/⻑/g,"長");
 }
 function nMoney(v,rentYen=0){
-  let s=String(v||"").normalize("NFKC").replace(/,/g,"").trim();
-  if(!s || /^(なし|無|無し|-|－|0|0円)$/.test(s)) return 0;
-  let m=s.match(/(\d+(?:\.\d+)?)\s*万円/);
+  let s=String(v??"")
+    .normalize("NFKC")
+    .replace(/,/g,"")
+    .replace(/\s+/g,"")
+    .trim();
+
+  // REINS「なし / - / 空欄」とMIO「0 / 0円 / 0ヶ月」を同じ“なし”扱い
+  if(!s || /^(?:なし|無し|無|[-－‐‑‒–—―ー]+|0(?:円|万(?:円)?|ヶ月|か月|ケ月|ヵ月|カ月)?)$/.test(s)){
+    return 0;
+  }
+
+  // 5万 / 5万円 / 5.3万 / 5.3万円
+  let m=s.match(/^(\d+(?:\.\d+)?)万(?:円)?$/);
   if(m) return Math.round(Number(m[1])*10000);
-  m=s.match(/(\d+(?:\.\d+)?)\s*(?:ヶ月|か月|ケ月|カ月)/);
-  if(m && rentYen) return Math.round(Number(m[1])*rentYen);
+
+  // 1ヶ月 / 0.5ヶ月 / 2ヵ月 等は、その側の賃料で円換算
+  m=s.match(/^(\d+(?:\.\d+)?)(?:ヶ月|か月|ケ月|ヵ月|カ月)(?:分)?$/);
+  if(m){
+    return rentYen ? Math.round(Number(m[1])*rentYen) : Number(m[1]);
+  }
+
+  // 50000 / 50000円
+  m=s.match(/^(\d+(?:\.\d+)?)(?:円)?$/);
+  if(m) return Number(m[1]);
+
   m=s.match(/(\d+(?:\.\d+)?)/);
-  return m?Number(m[1]):0;
+  return m ? Number(m[1]) : 0;
 }
 function nArea(v){
   const m=String(v||"").replace(/,/g,"").match(/\d+(?:\.\d+)?/);
@@ -650,24 +683,35 @@ function renderComparison(){
   body.innerHTML="";
   let withCandidate=0,noCandidate=0;
 
-  for(const r of reinsRows){
-    const cs=candidateRowsFor(r);
+  const grouped = reinsRows.map(r=>({r,cs:candidateRowsFor(r)}));
+  grouped.sort((a,b)=>{
+    const aNone=a.cs.length===0 ? 0 : 1;
+    const bNone=b.cs.length===0 ? 0 : 1;
+    return aNone-bNone;
+  });
+
+  for(const g of grouped){
+    const r=g.r;
+    const cs=g.cs;
     if(cs.length) withCandidate++; else noCandidate++;
 
     if(!cs.length){
       const tr=document.createElement("tr");
       tr.className="candidate-group";
       tr.dataset.search=nk(r.name+" "+r.address);
-      tr.innerHTML=`<td class="reinscell">${reinsSummary(r)}</td><td><span class="badge bred">候補なし</span></td><td colspan="12" class="muted">MIOに物件名候補が見つかりません</td>`;
+      tr.innerHTML=`<td class="reinscell">${reinsSummary(r)}</td><td><span class="badge bred">候補なし</span></td><td colspan="13" class="muted">MIOに物件名候補が見つかりません</td>`;
       body.appendChild(tr);
       continue;
     }
 
+    const groupId="cand_"+Math.random().toString(36).slice(2);
     cs.forEach((c,idx)=>{
       const m=c.m;
       const rr=nMoney(r.rent), mr=nMoney(m["賃料"]);
       const tr=document.createElement("tr");
       if(idx===0) tr.className="candidate-group";
+      else tr.className="extra-candidate";
+      tr.dataset.group=groupId;
       tr.dataset.search=nk(r.name+" "+r.address+" "+m["物件名"]+" "+m["号室"]+" "+m["駅名"]);
       const feeEq=reinsFee(r)===nMoney(m["共益費"]);
       const floorEq=nFloor(r.floor)!==null && nFloor(r.floor)===nFloor(m["所在階"]);
@@ -679,6 +723,10 @@ function renderComparison(){
       tr.innerHTML=`
         <td class="reinscell">${idx===0?reinsSummary(r):'<span class="muted">〃</span>'}</td>
         <td><span class="badge ${idx===0?'bgreen':'byellow'}">候補${idx+1}</span></td>
+        <td>
+          <div><b>${esc(m["物件番号"]||"-")}</b></div>
+          ${m["物件番号"]?`<button class="copybtn" type="button" data-copy="${esc(m["物件番号"])}">コピー</button>`:""}
+        </td>
         <td class="miomain">${esc(m["物件名"])}</td>
         <td>${esc(m["号室"]||"-")}</td>
         <td class="${fieldClass(floorEq)}">${esc(m["所在階"]||"-")}</td>
@@ -693,6 +741,15 @@ function renderComparison(){
         <td><b>${c.score}</b></td>`;
       body.appendChild(tr);
     });
+
+    if(cs.length>1){
+      const more=document.createElement("tr");
+      more.className="more-candidates-row";
+      more.dataset.group=groupId;
+      more.dataset.search=nk(r.name+" "+r.address+" "+cs.slice(1).map(x=>(x.m["物件名"]||"")+" "+(x.m["号室"]||"")).join(" "));
+      more.innerHTML=`<td></td><td colspan="14"><button type="button" class="more-candidates-btn" data-group="${groupId}" data-count="${cs.length-1}">候補2以下を表示（${cs.length-1}件） ▼</button></td>`;
+      body.appendChild(more);
+    }
   }
 
   $("reinsCount").textContent=reinsRows.length;
@@ -709,6 +766,38 @@ function applySearch(){
     tr.style.display=!q||tr.dataset.search.includes(q)?"":"none";
   });
 }
+
+
+
+document.addEventListener("click", e=>{
+  const btn=e.target.closest(".more-candidates-btn");
+  if(!btn) return;
+  const gid=btn.dataset.group;
+  const rows=[...document.querySelectorAll(`tr.extra-candidate[data-group="${gid}"]`)];
+  const opening=!rows.some(tr=>tr.classList.contains("open"));
+  rows.forEach(tr=>tr.classList.toggle("open",opening));
+  const n=btn.dataset.count||rows.length;
+  btn.textContent=opening?`候補2以下を閉じる（${n}件） ▲`:`候補2以下を表示（${n}件） ▼`;
+});
+
+document.addEventListener("click", async e=>{
+  const btn=e.target.closest(".copybtn");
+  if(!btn) return;
+  const text=btn.dataset.copy||"";
+  if(!text) return;
+  try{
+    await navigator.clipboard.writeText(text);
+  }catch(err){
+    const ta=document.createElement("textarea");
+    ta.value=text; ta.style.position="fixed"; ta.style.opacity="0";
+    document.body.appendChild(ta); ta.select();
+    document.execCommand("copy"); ta.remove();
+  }
+  const old=btn.textContent;
+  btn.textContent="コピーしました";
+  btn.classList.add("done");
+  setTimeout(()=>{btn.textContent=old;btn.classList.remove("done");},1200);
+});
 
 const mioDrop=$("mioDrop"), mioFile=$("mioFile");
 drop.onclick=()=>file.click();
