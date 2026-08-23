@@ -1,0 +1,740 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>REINS・ミオ（ARNet）比較｜REINS読取テスト v2</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<style>
+:root{--navy:#17365d;--blue:#1f4e78;--gold:#b59b53;--bg:#f4f7fb;--line:#dbe3ea;--green:#168552;--red:#c63838;--muted:#6c7882}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);font-family:"Yu Gothic","Meiryo",sans-serif;color:#27333d}
+header{background:linear-gradient(135deg,var(--navy),var(--blue));color:#fff;border-bottom:4px solid var(--gold);padding:20px}
+.wrap{max-width:1450px;margin:auto;padding:18px}header .wrap{padding:0}
+h1{font-size:24px;margin:0 0 5px}.sub{font-size:13px;color:#e8eef5}
+.panel{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:14px;box-shadow:0 4px 18px rgba(31,78,120,.05)}
+#drop{border:3px dashed #9fb0bf;border-radius:12px;padding:34px 18px;text-align:center;font-size:19px;cursor:pointer;background:#fafcfe}
+#drop.drag{border-color:var(--gold);background:#fff8e7}input{display:none}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}button{border:0;border-radius:9px;padding:10px 15px;font-weight:700;cursor:pointer}.secondary{background:#e9eff4;color:var(--navy)}
+#status{margin-top:12px;padding:11px 13px;border-radius:9px;background:#eef3f7;line-height:1.7}.ok{background:#e5f5ec!important;color:#126d43}.bad{background:#fdeaea!important;color:#982a2a}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px}.card{border:1px solid var(--line);border-radius:10px;padding:11px;background:#fff}.n{font-size:27px;font-weight:800;color:var(--navy)}.l{font-size:11px;color:var(--muted)}
+.tablebox{overflow:auto;max-height:720px;border:1px solid var(--line);border-radius:10px}table{border-collapse:collapse;width:100%;min-width:1180px;font-size:12px}th{position:sticky;top:0;background:var(--navy);color:#fff;padding:8px;text-align:left;white-space:nowrap}td{padding:7px 8px;border-bottom:1px solid #edf1f4;vertical-align:top;white-space:nowrap}tr:hover td{background:#f8fbfd}.miss td{background:#fff8e7}
+.small{font-size:12px;color:var(--muted);line-height:1.7}
+@media(max-width:800px){.cards{grid-template-columns:1fr}.wrap{padding:10px}}
+</style>
+
+<style>
+.uploadgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.dropbox{border:3px dashed #9aabba;border-radius:12px;padding:28px 16px;text-align:center;cursor:pointer;background:#fafcfe}
+.dropbox.drag{background:#eef5fb;border-color:#1f4e78}
+.hiddenfile{display:none}
+.statusbox{margin-top:10px;padding:10px 12px;background:#f5f7f9;border-radius:8px;font-size:13px;line-height:1.6}
+.compare-head{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+.badge{display:inline-block;padding:3px 8px;border-radius:999px;font-size:11px;font-weight:700}
+.bgreen{background:#e4f5ec;color:#126d43}.byellow{background:#fff1d5;color:#925800}.bred{background:#fde8e8;color:#a52828}
+.candidate-group{border-top:2px solid #dbe3ea}
+.reinscell{min-width:250px;line-height:1.65}
+.miomain{font-weight:700}
+.difftext{color:#c63838;font-weight:700}
+.oktext{color:#168552;font-weight:700}
+.muted{color:#6c7882}
+.small2{font-size:11px;color:#6c7882}
+@media(max-width:900px){.uploadgrid{grid-template-columns:1fr}}
+</style>
+
+</head>
+
+<body>
+<header><div class="wrap"><h1>REINS・ミオ（ARNet）比較</h1><div class="sub">候補比較 v1.2｜REINSは号室なしのため、物件名からMIO候補を表示</div></div></header>
+<div class="wrap">
+
+  <div class="panel">
+    <div class="uploadgrid">
+      <div>
+        <h3 style="margin-top:0">① REINS PDF</h3>
+        <div id="drop" class="dropbox"><b>REINS PDFをここにまとめてドラッグ</b><br><span class="small">またはクリックして複数選択</span></div>
+        <input id="file" class="hiddenfile" type="file" accept=".pdf,application/pdf" multiple>
+        <div id="status" class="statusbox">REINS PDF待機中</div>
+      </div>
+      <div>
+        <h3 style="margin-top:0">② MIO（ARNet）PDF</h3>
+        <div id="mioDrop" class="dropbox"><b>MIO（ARNet）PDFをここにまとめてドラッグ</b><br><span class="small">またはクリックして複数選択</span></div>
+        <input id="mioFile" class="hiddenfile" type="file" accept=".pdf,application/pdf" multiple>
+        <div id="mioStatus" class="statusbox">MIO PDF待機中</div>
+      </div>
+    </div>
+    <div class="actions">
+      <button id="compareBtn">候補比較</button>
+      <button class="secondary" id="reset">リセット</button>
+    </div>
+    <div class="small" style="margin-top:10px">
+      REINSは指定住所で絞り込み後、<b>物件名からMIOの候補を検索</b>します。号室がないため完全一致とは判定せず、
+      <b>候補</b>として表示し、所在階・間取・専有面積・賃料・共益費・敷金・保証金・礼金を横比較します。
+    </div>
+  </div>
+
+  <div class="panel" id="result" style="display:none">
+    <div class="cards">
+      <div class="card"><div class="n" id="reinsCount">0</div><div class="l">REINS対象</div></div>
+      <div class="card"><div class="n" id="mioCount">0</div><div class="l">MIO読取</div></div>
+      <div class="card"><div class="n" id="candidateCount">0</div><div class="l">候補あり</div></div>
+      <div class="card"><div class="n" id="noCandidateCount">0</div><div class="l">候補なし</div></div>
+    </div>
+
+    <div class="compare-head">
+      <input id="searchBox" placeholder="物件名・所在地・号室で検索" style="padding:10px 12px;border:1px solid #dbe3ea;border-radius:8px;min-width:300px">
+      <span class="small">候補は条件が近い順に表示します。</span>
+    </div>
+
+    <div class="tablebox"><table style="min-width:1500px">
+      <thead>
+        <tr>
+          <th>REINS</th><th>候補</th><th>MIO物件名</th><th>号室</th><th>所在階</th><th>間取</th><th>専有</th>
+          <th>賃料</th><th>共益費</th><th>敷金</th><th>保証金</th><th>礼金</th><th>所在地/駅</th><th>近さ</th>
+        </tr>
+      </thead>
+      <tbody id="compareBody"></tbody>
+    </table></div>
+  </div>
+</div>
+
+<script>
+
+pdfjsLib.GlobalWorkerOptions.workerSrc="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+const $=id=>document.getElementById(id);
+const drop=$("drop"), file=$("file"), status=$("status"), body=$("body");
+
+function norm(s){return String(s??"").normalize("NFKC").replace(/\u00a0/g," ").replace(/\s+/g," ").trim()}
+function compact(s){return norm(s).replace(/\s+/g,"")}
+function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function inRel(block,a,min,max){return block.filter(o=>o.top-a.top>=min&&o.top-a.top<max)}
+function byX(a,b){return a.x-b.x}
+function joined(arr){return arr.slice().sort(byX).map(o=>norm(o.text)).join(" ").replace(/\s+/g," ").trim()}
+function joinedCompact(arr){return arr.slice().sort(byX).map(o=>compact(o.text)).join("")}
+
+function textItems(content,viewport){
+  const out=[];
+  for(const it of content.items){
+    const text=norm(it.str); if(!text) continue;
+    const p=viewport.convertToViewportPoint(it.transform[4],it.transform[5]);
+    const h=Math.max(4,Math.abs(it.height||it.transform[3]||7)*viewport.scale);
+    const w=Math.max(1,(it.width||0)*viewport.scale);
+    out.push({text,x:p[0],x1:p[0]+w,cx:p[0]+w/2,top:p[1]-h,bottom:p[1]});
+  }
+  return out.sort((a,b)=>a.top-b.top||a.x-b.x);
+}
+
+function moneyCell(arr){
+  const s=joinedCompact(arr);
+  if(!s || /^[-－‐—]+$/.test(s)) return "なし";
+  if(/なし/.test(s)) return "なし";
+  const m=s.match(/(\d{1,3}(?:,\d{3})+|\d+)円/);
+  return m?Number(m[1].replace(/,/g,"")).toLocaleString()+"円":"";
+}
+function cleanLayout(s){
+  s=compact(s);
+  if(s==="ワンルーム") return "1R";
+  return s.replace(/Ｒ/g,"R").replace(/Ｋ/g,"K").replace(/Ｄ/g,"D").replace(/Ｌ/g,"L").replace(/Ｓ/g,"S");
+}
+function cleanName(s){
+  s=norm(s);
+  s=s.replace(/^[-－‐—]\s*/,"");
+  s=s.replace(/^\d+(?:\.\d+)?\s*万円\s*/,""); // ㎡単価を除外
+  return s.trim();
+}
+function asciiAddress(s){ return norm(s); }
+
+function parsePage(items,pageNo){
+  // 12桁のREINS物件番号は「行の開始位置」を取るためだけに使用。
+  // 表示にも比較にも使わない。
+  const anchors=items
+    .filter(o=>/^\d{12}$/.test(compact(o.text))&&o.x>=60&&o.x<150)
+    .sort((a,b)=>a.top-b.top);
+
+  const rows=[];
+  for(let i=0;i<anchors.length;i++){
+    const a=anchors[i], next=anchors[i+1];
+    const blockBottom=next?next.top-1:a.top+82;
+    const block=items.filter(o=>o.top>=a.top-3&&o.top<blockBottom);
+
+    const rel=(lo,hi)=>block.filter(o=>o.top-a.top>=lo&&o.top-a.top<hi);
+    const line1=rel(-4,14);   // 物件種目・面積・所在地
+    const line2=rel(13,31);   // 取引態様・賃料・建物名・所在階・間取
+    const line3=rel(29,47);   // 管理費
+    const line4=rel(45,64);   // 共益費
+
+    // No.
+    const noObj=block.find(o=>o.x>=35&&o.x<65&&/^\d{1,3}$/.test(compact(o.text))&&o.top-a.top>25&&o.top-a.top<48);
+    const no=noObj?compact(noObj.text):"";
+
+    // 所在地・専有面積
+    // NFKCで「㎡」が「m2」に変換されるため両方許容する。
+    const areaAddr=joinedCompact(line1.filter(o=>o.x>=345&&o.x<610));
+    const areaM=areaAddr.match(/(\d+(?:\.\d+)?)(?:㎡|m2|m²)/i);
+    const area=areaM?areaM[1]:"";
+    const addrM=areaAddr.match(/(兵庫県.+)$/);
+    const address=addrM?asciiAddress(addrM[1]):"";
+
+    // 取引態様
+    const transactionText=joinedCompact(line2.filter(o=>o.x>=60&&o.x<150));
+    const transactionM=transactionText.match(/(媒介|代理|貸主|売主|一般)/);
+    const transaction=transactionM?transactionM[1]:"";
+
+    // 商号：各物件の4段目右側に固定配置されている会社名を座標で取得。
+    // 「商号」という見出しはページヘッダーにしか無いため、ラベル検索は使わない。
+    // 12桁物件番号の行を基準に、約47〜58pt下・x=430以降が商号行。
+    const companyParts=rel(46,59)
+      .filter(o=>o.x>=430)
+      .sort((a,b)=>a.x-b.x)
+      .map(o=>compact(o.text))
+      .filter(Boolean)
+      .filter(v=>!/^[-－‐—]+$/.test(v))
+      .filter(v=>!/^0?\d{1,4}-\d{1,4}-\d{3,4}$/.test(v));
+    let company=companyParts.join("").trim();
+
+    // 賃料
+    const rentText=joinedCompact(line2.filter(o=>o.x>=150&&o.x<270));
+    const rentM=rentText.match(/(\d+(?:\.\d+)?)万円/);
+    const rent=rentM?rentM[1]+"万円":"";
+
+    // 建物名
+    // REINS PDFでは「0.3」「万円グレース今津」のように㎡単価と建物名が
+    // 同じ文字片に連結されるため、2段目だけを拾って先頭の㎡単価を除去する。
+    let nameText=joinedCompact(line2.filter(o=>o.x>=390&&o.x<610));
+    nameText=nameText
+      .replace(/^[-－‐—]+/,"")
+      .replace(/^\d+(?:\.\d+)?万円/,"")
+      .replace(/^[-－‐—]+/,"");
+
+    // No.59のように建物名の末尾だけが次行へ折り返すケースを補完。
+    const cont=rel(30,39)
+      .filter(o=>o.x>=430&&o.x<610)
+      .map(o=>compact(o.text))
+      .filter(s=>s&&!/(?:阪急|阪神|JR|ＪＲ|東海道|福知山|山陽|万円)/.test(s))
+      .join("");
+    let name=(nameText+cont).trim();
+
+    // 所在階：PDF内部では「3」「階」に分割されるのでセル内を連結してから判定。
+    const floorText=joinedCompact(line2.filter(o=>o.x>=600&&o.x<710));
+    const floorM=floorText.match(/(\d+)階/);
+    const floor=floorM?floorM[1]+"階":"";
+
+    // 間取：同様に「1」「Ｋ」など分割されるので連結後に正規化。
+    const layoutText=joinedCompact(line2.filter(o=>o.x>=710));
+    let layout="";
+    const layoutM=layoutText.match(/(ワンルーム|\d+(?:R|K|DK|LDK|SK|SDK|SLDK)(?:\+S)?)/i);
+    if(layoutM) layout=cleanLayout(layoutM[1]);
+
+    // 管理費・共益費
+    const management=moneyCell(line3.filter(o=>o.x>=150&&o.x<270));
+    const common=moneyCell(line4.filter(o=>o.x>=150&&o.x<270));
+
+    // 敷金／保証金、礼金／権利金。REINSは「左/右」の1セル表記。
+    // 「-」「なし」もそのまま保持して、後のMIO比較時に0/空欄との正規化ができるようにする。
+    function pairCondition(ws){
+      let t=joinedCompact(ws).replace(/円/g,"");
+      if(!t) return ["",""];
+      const parts=t.split("/");
+      const clean=v=>String(v||"").replace(/^[-－‐—]+$/,"-");
+      return [clean(parts[0]),clean(parts[1])];
+    }
+    const [deposit,guarantee]=pairCondition(line3.filter(o=>o.x>=270&&o.x<390));
+    const [keyMoney,rightMoney]=pairCondition(line4.filter(o=>o.x>=270&&o.x<390));
+
+    rows.push({
+      page:pageNo,
+      no,
+      name:(()=>{
+        let n=cleanReinsName(name, extractReinsStation(items, a.top));
+        if(n==="夙川羽衣町パークハイム") n+="Ⅱ";
+        return n;
+      })(),
+      floor,
+      layout,
+      area,
+      rent,
+      management,
+      common,
+      deposit:cleanConditionValue(deposit),
+      guarantee:cleanConditionValue(guarantee),
+      keyMoney:cleanConditionValue(keyMoney),
+      rightMoney:cleanConditionValue(rightMoney),
+      address,
+      transaction,
+      company:cleanCompany(company)
+    });
+  }
+  return rows;
+}
+
+function cleanReinsName(name, station){
+  let s=String(name||"").trim();
+  s=s.replace(/^資料変更分/,"").trim();
+  const st=String(station||"").trim();
+  if(st && s.endsWith(st) && s.length>st.length){
+    s=s.slice(0,-st.length).trim();
+  }
+  return s.replace(/[-－‐—]+$/,"").trim();
+}
+
+function extractReinsStation(items, anchorTop){
+  // REINSの「沿線駅」欄は、物件番号アンカーの約29〜47pt下・x=438〜610。
+  // ここから路線名を除き、PDFに実際に入っている駅名文字列をそのまま返す。
+  // 文字種の違い（例：西/⻄、戸/戶）を避けるため、固定駅名辞書との比較はしない。
+  const parts=items
+    .filter(o=>o.top>=anchorTop+29 && o.top<anchorTop+47)
+    .filter(o=>o.x>=438 && o.x<610)
+    .sort((a,b)=>a.x-b.x)
+    .map(o=>compact(o.text))
+    .filter(Boolean)
+    .filter(s=>!/(?:線|鉄道)$/.test(s))
+    .filter(s=>!/^[-－‐—]+$/.test(s));
+
+  return parts.length ? parts[parts.length-1] : "";
+}
+
+const TARGET_ADDRESS_KEYWORDS=[
+"仁川北","仁川町","田近野","段上町","甲東園","上大市","下大市","門戸","岡田山","上ヶ原","上ケ原",
+"神呪町","松籟荘","上甲東園","北野","鴻池","荻野","大野","西野","池尻","中野","瑞原",
+"東野","奥畑","寺本","松ヶ丘","松ケ丘","昆陽北","瑞ケ丘","瑞ヶ丘","広畑","瑞穂",
+"緑ヶ丘","緑ケ丘","鋳物師","荒牧","昆陽","宝塚市","川西市"
+];
+function targetAddressNorm(s){
+  return String(s||"")
+    .normalize("NFKC")
+    .replace(/[ヶヵ]/g,"ケ")
+    .replace(/\s+/g,"");
+}
+function isTargetAddress(address){
+  const a=targetAddressNorm(address);
+  return TARGET_ADDRESS_KEYWORDS.some(k=>a.includes(targetAddressNorm(k)));
+}
+
+function cleanConditionValue(v){
+  let s=String(v??"").trim();
+  if(!s) return "";
+  s=s.replace(/^(なし)(?:-)+$/,"なし");
+  s=s.replace(/^なし-$/,"なし");
+  s=s.replace(/^-なし$/,"なし");
+  s=s.replace(/^[-－‐—]+$/,"-");
+  return s;
+}
+
+function cleanCompany(company){
+  let s=String(company||"").trim();
+  // 商号欄に交通情報が誤って入ったケースを除外
+  if(/^(?:阪急|JR|ＪＲ|神戸電鉄|山陽|地下鉄|近鉄|京阪)/.test(s) && /徒歩|バス|分/.test(s)){
+    return "";
+  }
+  return s;
+}
+
+async function readReinsPdfs(fileList){
+  try{
+    const files=[...fileList].filter(f=>f && /pdf$/i.test(f.name));
+    if(!files.length) return;
+
+    status.className="";
+    status.textContent=`読取中… 0 / ${files.length}ファイル`;
+
+    const all=[];
+    let totalPages=0;
+    let pageOffset=0;
+
+    for(let fi=0; fi<files.length; fi++){
+      const f=files[fi];
+      const buf=await f.arrayBuffer();
+      const pdf=await pdfjsLib.getDocument({data:buf}).promise;
+
+      for(let p=1; p<=pdf.numPages; p++){
+        status.textContent=`読取中… ${fi+1} / ${files.length}ファイル ｜ ${p} / ${pdf.numPages}ページ ｜ ${f.name}`;
+        const page=await pdf.getPage(p);
+        const viewport=page.getViewport({scale:1});
+        const content=await page.getTextContent();
+
+        // 一覧のページ番号は全PDFを通した連番にする。
+        all.push(...parsePage(textItems(content,viewport), pageOffset+p));
+      }
+
+      totalPages += pdf.numPages;
+      pageOffset += pdf.numPages;
+    }
+
+    reinsRender(all,totalPages);
+  }catch(e){
+    console.error(e);
+    status.className="bad";
+    status.textContent="読取エラー："+(e?.message||e);
+  }
+}
+
+function reinsRender(rows,pages){
+  reinsAllRows=rows;
+  reinsRows=rows.filter(r=>isTargetAddress(r.address));
+  status.className="";
+  status.innerHTML=`✅ REINS <b>${rows.length}件</b> 読取 ／ 対象エリア <b>${reinsRows.length}件</b>`;
+  maybeShowReady();
+}
+
+
+
+// --- MIO parser (completed logic reused) ---
+function mioNorm(s){return String(s??"").normalize("NFKC").replace(/\s+/g,"").trim()}
+
+function mioTextItems(content,viewport){
+  const out=[];
+  for(const it of content.items){
+    const s=mioNorm(it.str);
+    if(!s) continue;
+
+    // PDF座標 → 表示座標。ページ回転(90°)もviewport側で吸収。
+    const pt=viewport.convertToViewportPoint(it.transform[4],it.transform[5]);
+    const h=Math.max(4,Math.abs(it.height||it.transform[3]||6)*viewport.scale);
+    const w=Math.max(1,(it.width||0)*viewport.scale);
+
+    out.push({
+      text:s,
+      x0:pt[0],
+      x1:pt[0]+w,
+      top:pt[1]-h,
+      bottom:pt[1],
+      cx:pt[0]+w/2,
+      cy:pt[1]-h/2
+    });
+  }
+  return out;
+}
+
+function mioJoin(ws){
+  return ws.slice().sort((a,b)=>a.top-b.top||a.x0-b.x0).map(w=>w.text).join("");
+}
+
+function mioCell(ws,x0,x1,split,part="all"){
+  let a=ws.filter(w=>w.cx>=x0&&w.cx<x1);
+  if(part==="top")a=a.filter(w=>w.cy<split);
+  if(part==="bottom")a=a.filter(w=>w.cy>=split);
+  return mioJoin(a);
+}
+
+function mioRoomCell(ws,x0,x1,split){
+  // 号室が長い場合、PDF内部で「A120」+「6」のように分割され、
+  // 末尾だけが次セル側にはみ出すことがあるため、現況列手前まで拾う。
+  const statusWords=["空室","空家","空き","入居中","退去予定","即入居可"];
+  const a=ws
+    .filter(w=>w.x0>=x0 && w.x0<207 && w.cy<split)
+    .filter(w=>!statusWords.some(s=>String(w.text).includes(s)))
+    .sort((a,b)=>a.x0-b.x0);
+
+  const picked=[];
+  for(const w of a){
+    if(!picked.length){
+      picked.push(w);
+      continue;
+    }
+    const prev=picked[picked.length-1];
+    const gap=w.x0-prev.x1;
+    if(gap>5) break;
+    picked.push(w);
+  }
+  return mioJoin(picked);
+}
+
+function mioCleanCell(s,labels=[]){
+  s=mioNorm(s);
+  for(const l of labels)s=s.replaceAll(l,"");
+  return s.replace(/円$/,"");
+}
+
+function mioParsePage(items,pageNo){
+  // 左端の10桁物件番号を行アンカーとして使う
+  const anchors=items
+    .filter(w=>w.cx>=25&&w.cx<80&&/^\d{10}$/.test(w.text))
+    .sort((a,b)=>a.top-b.top);
+
+  const out=[];
+  for(let i=0;i<anchors.length;i++){
+    const a=anchors[i];
+    const next=anchors[i+1];
+    const rowTop=a.top-3;
+    const rowBottom=next?Math.min(next.top-2,a.top+24.8):a.top+24.8;
+    const rw=items.filter(w=>w.cy>=rowTop&&w.cy<rowBottom);
+    const split=a.top+10.2;
+
+    const obj={
+      "確認":"",
+      "ページ":pageNo,
+      "物件番号":a.text,
+      "取引態様":mioCleanCell(mioCell(rw,25,75,split,"bottom"),["物件番号"]),
+      "物件名":mioCleanCell(mioCell(rw,75,158,split)),
+      "号室":mioCleanCell(mioRoomCell(rw,158,180,split)),
+      "所在階":mioCleanCell(mioCell(rw,158,180,split,"bottom")),
+      "現況":mioCleanCell(mioCell(rw,180,207,split)),
+      "種別":mioCleanCell(mioCell(rw,207,268,split,"top")),
+      "間取":mioCleanCell(mioCell(rw,207,236,split,"bottom")),
+      "専有":mioCleanCell(mioCell(rw,236,268,split,"bottom")),
+      "沿線":mioCleanCell(mioCell(rw,268,342,split,"top")),
+      "駅名":mioCleanCell(mioCell(rw,268,342,split,"bottom")),
+      "賃料":mioCleanCell(mioCell(rw,342,417,split),["賃"]),
+      "共益費":mioCleanCell(mioCell(rw,417,474,split,"top"),["共"]),
+      "水道料":mioCleanCell(mioCell(rw,417,474,split,"bottom"),["水"]),
+      "保証金":mioCleanCell(mioCell(rw,474,530,split,"top"),["保"]),
+      "解約引":mioCleanCell(mioCell(rw,474,530,split,"bottom"),["解"]),
+      "敷金":mioCleanCell(mioCell(rw,530,590,split,"top"),["敷"]),
+      "礼金":mioCleanCell(mioCell(rw,530,590,split,"bottom"),["礼"]),
+      "保険料":mioCleanCell(mioCell(rw,590,642,split,"top"),["保"]),
+      "更新料":mioCleanCell(mioCell(rw,590,642,split,"bottom"),["更"]),
+      "築年":mioCleanCell(mioCell(rw,642,696,split,"top")),
+      "構造":mioCleanCell(mioCell(rw,642,696,split,"bottom")),
+      "駐車場":mioCleanCell(mioCell(rw,696,749,split)),
+      "駐車場保証金":mioCleanCell(mioCell(rw,749,805,split,"top"),["保"]),
+      "駐車場月額":mioCleanCell(mioCell(rw,749,805,split,"bottom"),["月"])
+    };
+
+    // 号室がセル幅を超えて、末尾だけ所在階側へ回り込む帳票に対応。
+    // 例1：「11-」+「308(3階)」 → 11-308
+    // 例2：「A120」+「6(12階)」 → A1206
+    // 例3：「A120」+「(12階)6」 → A1206
+    {
+      const floorRaw=String(obj["所在階"]||"");
+
+      // 所在階セル先頭に号室末尾の数字が付くケース
+      const roomTail=floorRaw.match(/^(\d{1,4})(?=\(|（)/);
+      if(roomTail && /[A-Z0-9\-‐‑‒–—―ー]$/i.test(String(obj["号室"]||""))){
+        obj["号室"]+=roomTail[1];
+        obj["所在階"]=floorRaw.slice(roomTail[1].length);
+      }else{
+        // PDF抽出順によって「(12階)6」のように末尾へ出るケース
+        const tailAfter=floorRaw.match(/^(.*?[)）])(\d{1,4})$/);
+        if(tailAfter && /[A-Z0-9\-‐‑‒–—―ー]$/i.test(String(obj["号室"]||""))){
+          obj["号室"]+=tailAfter[2];
+          obj["所在階"]=tailAfter[1];
+        }
+      }
+    }
+
+    // 最低限の品質チェック。要確認はExcelでも先頭列に残す。
+    const problems=[];
+    if(!/^\d{10}$/.test(obj["物件番号"]))problems.push("物件番号");
+    if(!obj["物件名"])problems.push("物件名");
+    if(!/[\d,]+/.test(obj["賃料"]))problems.push("賃料");
+    if(!obj["現況"])problems.push("現況");
+    obj["確認"]=problems.length?"要確認："+problems.join("・"):"OK";
+    out.push(obj);
+  }
+  return out;
+}
+
+
+let reinsAllRows=[], reinsRows=[], mioRows=[];
+
+function maybeShowReady(){
+  if(reinsRows.length && mioRows.length){
+    $("compareBtn").textContent=`候補比較（REINS ${reinsRows.length}件 × MIO ${mioRows.length}件）`;
+  }
+}
+
+async function readMioPdfs(fileList){
+  const fs=[...fileList].filter(f=>f && /pdf$/i.test(f.name));
+  if(!fs.length) return;
+  mioRows=[];
+  let totalPages=0, pageOffset=0;
+  try{
+    for(let fi=0;fi<fs.length;fi++){
+      const f=fs[fi];
+      const buf=await f.arrayBuffer();
+      const pdf=await pdfjsLib.getDocument({data:new Uint8Array(buf)}).promise;
+      for(let p=1;p<=pdf.numPages;p++){
+        $("mioStatus").textContent=`読取中… ${fi+1}/${fs.length}ファイル ｜ ${p}/${pdf.numPages}ページ`;
+        const page=await pdf.getPage(p);
+        const viewport=page.getViewport({scale:1,rotation:page.rotate});
+        const content=await page.getTextContent();
+        mioRows.push(...mioParsePage(mioTextItems(content,viewport),pageOffset+p));
+      }
+      totalPages+=pdf.numPages;
+      pageOffset+=pdf.numPages;
+    }
+    $("mioStatus").innerHTML=`✅ MIO <b>${mioRows.length}件</b> 読取 ／ ${totalPages}ページ`;
+    maybeShowReady();
+  }catch(e){
+    console.error(e);
+    $("mioStatus").textContent="MIO読取エラー："+(e?.message||e);
+  }
+}
+
+function nk(s){
+  return String(s||"").normalize("NFKC").toLowerCase()
+    .replace(/（旧[:：]?[^）]*）|\(旧[:：]?[^)]*\)/g,"")
+    .replace(/[ 　\t\r\n・･.\-‐‑‒–—―ー_()（）［］【】「」『』]/g,"")
+    .replace(/ヶ/g,"ケ")
+    .replace(/戶/g,"戸")
+    .replace(/⻄/g,"西")
+    .replace(/⻑/g,"長");
+}
+function nMoney(v,rentYen=0){
+  let s=String(v||"").normalize("NFKC").replace(/,/g,"").trim();
+  if(!s || /^(なし|無|無し|-|－|0|0円)$/.test(s)) return 0;
+  let m=s.match(/(\d+(?:\.\d+)?)\s*万円/);
+  if(m) return Math.round(Number(m[1])*10000);
+  m=s.match(/(\d+(?:\.\d+)?)\s*(?:ヶ月|か月|ケ月|カ月)/);
+  if(m && rentYen) return Math.round(Number(m[1])*rentYen);
+  m=s.match(/(\d+(?:\.\d+)?)/);
+  return m?Number(m[1]):0;
+}
+function nArea(v){
+  const m=String(v||"").replace(/,/g,"").match(/\d+(?:\.\d+)?/);
+  return m?Number(m[0]):null;
+}
+function nFloor(v){
+  const m=String(v||"").match(/(\d+)/);
+  return m?Number(m[1]):null;
+}
+function nLayout(v){
+  return nk(String(v||"").replace(/SLDK/i,"LDK+S").replace(/SK/i,"K+S"));
+}
+function reinsFee(r){
+  return nMoney(r.management)+nMoney(r.common);
+}
+function nameScore(a,b){
+  const x=nk(a), y=nk(b);
+  if(!x||!y) return 0;
+  if(x===y) return 100;
+  if(x.includes(y)||y.includes(x)){
+    const ratio=Math.min(x.length,y.length)/Math.max(x.length,y.length);
+    return 72+Math.round(ratio*18);
+  }
+  // common prefix / rough overlap for minor title variations
+  let pref=0;
+  while(pref<Math.min(x.length,y.length)&&x[pref]===y[pref]) pref++;
+  const ratio=pref/Math.max(x.length,y.length);
+  return ratio>=0.65 ? Math.round(55+ratio*15) : 0;
+}
+function candidateScore(r,m){
+  let s=nameScore(r.name,m["物件名"]);
+  if(!s) return 0;
+  const rr=nMoney(r.rent), mr=nMoney(m["賃料"]);
+  if(rr&&mr&&rr===mr) s+=24;
+  const rf=nFloor(r.floor), mf=nFloor(m["所在階"]);
+  if(rf!==null&&mf!==null&&rf===mf) s+=14;
+  if(nLayout(r.layout)&&nLayout(r.layout)===nLayout(m["間取"])) s+=12;
+  const ra=nArea(r.area), ma=nArea(m["専有"]);
+  if(ra!==null&&ma!==null&&Math.abs(ra-ma)<=0.15) s+=12;
+  if(reinsFee(r)===nMoney(m["共益費"])) s+=6;
+  return s;
+}
+function fieldClass(eq){return eq?"oktext":"difftext"}
+function moneyLabel(v){
+  if(v===""||v==null) return "";
+  return String(v);
+}
+function candidateRowsFor(r){
+  return mioRows
+    .map(m=>({m,score:candidateScore(r,m),ns:nameScore(r.name,m["物件名"])}))
+    .filter(x=>x.ns>0)
+    .sort((a,b)=>b.score-a.score)
+    .slice(0,12);
+}
+function sameMoney(a,b,rentA=0,rentB=0){
+  return nMoney(a,rentA)===nMoney(b,rentB);
+}
+function reinsSummary(r){
+  return `<div class="miomain">${esc(r.name)}</div>
+    <div class="small2">${esc(r.address)}</div>
+    <div>${esc(r.floor||"-")} / ${esc(r.layout||"-")} / ${esc(r.area?r.area+"㎡":"-")}</div>
+    <div>賃料 ${esc(r.rent||"-")}　費用 ${esc(r.management||"なし")}＋${esc(r.common||"なし")}</div>
+    <div class="small2">敷 ${esc(r.deposit||"-")} / 保 ${esc(r.guarantee||"-")} / 礼 ${esc(r.keyMoney||"-")} / 商号 ${esc(r.company||"-")}</div>`;
+}
+function renderComparison(){
+  if(!reinsRows.length){alert("REINS PDFを読み込んでください。");return;}
+  if(!mioRows.length){alert("MIO（ARNet）PDFを読み込んでください。");return;}
+
+  const body=$("compareBody");
+  body.innerHTML="";
+  let withCandidate=0,noCandidate=0;
+
+  for(const r of reinsRows){
+    const cs=candidateRowsFor(r);
+    if(cs.length) withCandidate++; else noCandidate++;
+
+    if(!cs.length){
+      const tr=document.createElement("tr");
+      tr.className="candidate-group";
+      tr.dataset.search=nk(r.name+" "+r.address);
+      tr.innerHTML=`<td class="reinscell">${reinsSummary(r)}</td><td><span class="badge bred">候補なし</span></td><td colspan="12" class="muted">MIOに物件名候補が見つかりません</td>`;
+      body.appendChild(tr);
+      continue;
+    }
+
+    cs.forEach((c,idx)=>{
+      const m=c.m;
+      const rr=nMoney(r.rent), mr=nMoney(m["賃料"]);
+      const tr=document.createElement("tr");
+      if(idx===0) tr.className="candidate-group";
+      tr.dataset.search=nk(r.name+" "+r.address+" "+m["物件名"]+" "+m["号室"]+" "+m["駅名"]);
+      const feeEq=reinsFee(r)===nMoney(m["共益費"]);
+      const floorEq=nFloor(r.floor)!==null && nFloor(r.floor)===nFloor(m["所在階"]);
+      const layoutEq=nLayout(r.layout)===nLayout(m["間取"]);
+      const areaR=nArea(r.area), areaM=nArea(m["専有"]);
+      const areaEq=areaR!==null&&areaM!==null&&Math.abs(areaR-areaM)<=0.15;
+      const rentEq=rr&&mr&&rr===mr;
+
+      tr.innerHTML=`
+        <td class="reinscell">${idx===0?reinsSummary(r):'<span class="muted">〃</span>'}</td>
+        <td><span class="badge ${idx===0?'bgreen':'byellow'}">候補${idx+1}</span></td>
+        <td class="miomain">${esc(m["物件名"])}</td>
+        <td>${esc(m["号室"]||"-")}</td>
+        <td class="${fieldClass(floorEq)}">${esc(m["所在階"]||"-")}</td>
+        <td class="${fieldClass(layoutEq)}">${esc(m["間取"]||"-")}</td>
+        <td class="${fieldClass(areaEq)}">${esc(m["専有"]||"-")}</td>
+        <td class="${fieldClass(rentEq)}">${esc(m["賃料"]||"-")}</td>
+        <td class="${fieldClass(feeEq)}">${esc(m["共益費"]||"0")}</td>
+        <td class="${fieldClass(sameMoney(r.deposit,m["敷金"],rr,mr))}">${esc(m["敷金"]||"0")}</td>
+        <td class="${fieldClass(sameMoney(r.guarantee,m["保証金"],rr,mr))}">${esc(m["保証金"]||"0")}</td>
+        <td class="${fieldClass(sameMoney(r.keyMoney,m["礼金"],rr,mr))}">${esc(m["礼金"]||"0")}</td>
+        <td>${esc((m["駅名"]||"")+" "+(m["沿線"]||""))}</td>
+        <td><b>${c.score}</b></td>`;
+      body.appendChild(tr);
+    });
+  }
+
+  $("reinsCount").textContent=reinsRows.length;
+  $("mioCount").textContent=mioRows.length;
+  $("candidateCount").textContent=withCandidate;
+  $("noCandidateCount").textContent=noCandidate;
+  $("result").style.display="block";
+  applySearch();
+}
+
+function applySearch(){
+  const q=nk($("searchBox").value);
+  [...$("compareBody").rows].forEach(tr=>{
+    tr.style.display=!q||tr.dataset.search.includes(q)?"":"none";
+  });
+}
+
+const mioDrop=$("mioDrop"), mioFile=$("mioFile");
+drop.onclick=()=>file.click();
+file.onchange=()=>file.files.length&&readReinsPdfs(file.files);
+drop.addEventListener("dragover",e=>{e.preventDefault();drop.classList.add("drag")});
+drop.addEventListener("dragleave",()=>drop.classList.remove("drag"));
+drop.addEventListener("drop",e=>{e.preventDefault();drop.classList.remove("drag");const fs=e.dataTransfer.files;if(fs&&fs.length)readReinsPdfs(fs)});
+
+mioDrop.onclick=()=>mioFile.click();
+mioFile.onchange=()=>mioFile.files.length&&readMioPdfs(mioFile.files);
+mioDrop.addEventListener("dragover",e=>{e.preventDefault();mioDrop.classList.add("drag")});
+mioDrop.addEventListener("dragleave",()=>mioDrop.classList.remove("drag"));
+mioDrop.addEventListener("drop",e=>{e.preventDefault();mioDrop.classList.remove("drag");const fs=e.dataTransfer.files;if(fs&&fs.length)readMioPdfs(fs)});
+
+$("compareBtn").onclick=renderComparison;
+$("searchBox").oninput=applySearch;
+$("reset").onclick=()=>{
+  file.value="";mioFile.value="";
+  reinsAllRows=[];reinsRows=[];mioRows=[];
+  $("status").textContent="REINS PDF待機中";
+  $("mioStatus").textContent="MIO PDF待機中";
+  $("result").style.display="none";
+  $("compareBody").innerHTML="";
+  $("compareBtn").textContent="候補比較";
+};
+
+</script>
+</body>
+</html>
